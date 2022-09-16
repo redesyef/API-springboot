@@ -6,6 +6,8 @@
     import org.springframework.web.bind.annotation.*;
     import mintic.Modelo.Usuario;
 
+    import javax.servlet.http.HttpServletResponse;
+    import java.io.IOException;
     import java.security.MessageDigest;
     import java.security.NoSuchAlgorithmException;
     import java.util.List;
@@ -75,6 +77,19 @@
                 sb.append(String.format("%02x", b));
             }
             return sb.toString();
+        }
+        @PostMapping("/validar")
+        public Usuario validate(@RequestBody  Usuario infoUsuario, final HttpServletResponse response) throws IOException {
+            Usuario usuarioActual=this.miRepositorioUsuario
+                    .getUserByEmail(infoUsuario.getCorreo());
+            if (usuarioActual!=null &&
+                    usuarioActual.getContrasena().equals(convertirSHA256(infoUsuario.getContrasena()))) {
+                usuarioActual.setContrasena("");
+                return usuarioActual;
+            }else{
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+                return null;
+            }
         }
     }
 
